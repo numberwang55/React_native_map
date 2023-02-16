@@ -1,107 +1,87 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
+import { Button, StyleSheet, Text, View } from "react-native";
 import * as Location from "expo-location";
 import React, { useState, useEffect } from "react";
 import * as TaskManager from "expo-task-manager";
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import MapView, { Geojson, Polyline } from 'react-native-maps';
 
 export default function App() {
-  const [location, setLocation] = useState(null);
-  const [errorMsg, setErrorMsg] = useState(null);
-  useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestBackgroundPermissionsAsync();
-      if (status !== "granted") {
-        setErrorMsg("Permission to access location was denied");
-        return;
-      }
-      let info = await Location.getProviderStatusAsync();
-      console.log("gps status", info);
-
-      // setLocation(location);
-      let location = await Location.watchPositionAsync(
-        {
-          distanceInterval: 1000,
-        },
-        (loc) => {
-          console.log("new watch position", loc);
-        }
-      );
-
-      //start location
-      // let location = await Location.startLocationUpdatesAsync("task", {
-      //   accuracy: Location.Accuracy.BestForNavigation,
-      //   timeInterval: 0,
-      //   deferredUpdatesInterval: 0,
-      //   deferredUpdatesDistance: 0,
-      //   distanceInterval: 0,
-      // });
-      // TaskManager.defineTask("task", ({ data: { locations }, error }) => {
-      //   if (error) {
-      //     // check `error.message` for more details.
-      //     return;
-      //   }
-      //   console.log("Received new locations", locations);
-      // });
-
-      setLocation(location);
-    })();
-  }, []);
-
-  function calcCrow(lat1, lon1, lat2, lon2) {
-    var R = 6371; // km
-    var dLat = toRad(lat2 - lat1);
-    var dLon = toRad(lon2 - lon1);
-    var lat1 = toRad(lat1);
-    var lat2 = toRad(lat2);
-
-    var a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    var d = R * c;
-    return d;
-  }
-
-  // Converts numeric degrees to radians
-  function calcCrow(lat1, lon1, lat2, lon2) {
-    var R = 6371; // km
-    var dLat = toRad(lat2 - lat1);
-    var dLon = toRad(lon2 - lon1);
-    var lat1 = toRad(lat1);
-    var lat2 = toRad(lat2);
-
-    var a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    var d = R * c;
-    return d;
-  }
-
-  // Converts numeric degrees to radians
-  function toRad(Value) {
-    return (Value * Math.PI) / 180;
-  }
-
-  console.log(
-    "distance",
-    calcCrow(59.3293371, 13.4877472, 59.3225525, 13.4619422).toFixed(1)
-  );
+  // for navigation
+  const Stack = createNativeStackNavigator();
 
   return (
-    <View style={styles.container}>
-      <Text>App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-      <Text>stuff</Text>
-    </View>
+    <Map />
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
+  },
+  map: {
+    width: '100%',
+    height: '100%',
   },
 });
+
+// create a marker
+
+// const myPlace = {
+//   type: 'FeatureCollection',
+//   features: [
+//     {
+//       type: 'Feature',
+//       properties: {},
+//       geometry: {
+//         type: 'Point',
+//         coordinates: [-0.06390620316532036, 51.50475442686777],
+//       }
+//     }
+//   ]
+// };
+
+// <MapView style={styles.map}>
+//   <Geojson
+//     geojson={myPlace}
+//     strokeColor="red"
+//     fillColor="green"
+//     strokeWidth={2}
+//   />
+// </MapView>
+
+function testRoute() {
+  return [
+    { latitude: 37.8025259, longitude: -122.4351431 },
+    { latitude: 37.7896386, longitude: -122.421646 },
+    { latitude: 37.7665248, longitude: -122.4161628 },
+    { latitude: 37.7734160, longitude: -122.4577787 },
+    { latitude: 37.7948605, longitude: -122.4596065 },
+    { latitude: 37.8025259, longitude: -122.4351431 }
+  ]
+}
+
+const Map = props => (
+  <MapView style={styles.map} initialRegion={{
+    latitude: 37.8025259,
+    longitude: -122.4351431,
+    latitudeDelta: 0.0922,
+    longitudeDelta: 0.0421,
+  }}>
+    <Polyline
+      coordinates={testRoute()}
+      strokeColor="#000" // fallback for when `strokeColors` is not supported by the map-provider
+      strokeColors={[
+        '#7F0000',
+        '#00000000', // no color, creates a "long" gradient between the previous and next coordinate
+        '#B24112',
+        '#E5845C',
+        '#238C23',
+        '#7F0000'
+      ]}
+      strokeWidth={6}
+    />
+  </MapView>
+)
+
